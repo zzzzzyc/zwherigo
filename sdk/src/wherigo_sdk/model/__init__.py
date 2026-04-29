@@ -12,7 +12,14 @@ from wherigo_sdk.model.entities import (
     Variable,
     Zone,
 )
-from wherigo_sdk.model.validation import collect_validation_errors, validate_or_raise
+from wherigo_sdk.model.validation import (
+    ValidationReport,
+    collect_validation_errors,
+    collect_validation_warnings,
+    validate_or_raise,
+    validate_project,
+    validation_report,
+)
 
 __all__ = [
     "Action",
@@ -25,8 +32,12 @@ __all__ = [
     "MediaObject",
     "ScriptGroup",
     "Task",
+    "ValidationReport",
     "Variable",
     "Zone",
     "collect_validation_errors",
+    "collect_validation_warnings",
+    "validate_project",
     "validate_or_raise",
+    "validation_report",
 ]

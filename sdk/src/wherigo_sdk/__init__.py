@@ -15,6 +15,8 @@ from wherigo_sdk.model import (
     Variable,
     Zone,
     collect_validation_errors,
+    collect_validation_warnings,
+    validate_project,
     validate_or_raise,
 )
 from wherigo_sdk.packaging import build_artifacts
@@ -39,7 +41,9 @@ __all__ = [
     "Zone",
     "build_artifacts",
     "collect_validation_errors",
+    "collect_validation_warnings",
     "load_project",
     "save_project",
+    "validate_project",
     "validate_or_raise",
 ]

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 from wherigo_sdk.io import load_project
 from wherigo_sdk.lua import LuaEmitter
+from wherigo_sdk.model import validate_project
 from wherigo_sdk.packaging import ENV_BRIDGE_PATH, ENV_COMPILER, build_artifacts
 
 
@@ -33,6 +35,20 @@ def _cmd_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_validate(args: argparse.Namespace) -> int:
+    cartridge = load_project(args.project)
+    report = validate_project(cartridge)
+    if args.json:
+        print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
+    else:
+        print(f"Project is {'valid' if report.ok else 'invalid'}")
+        for warning in report.warnings:
+            print(f"warning: {warning}")
+        for error in report.errors:
+            print(f"error: {error}")
+    return 0 if report.ok else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="wherigo", description="Wherigo SDK CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -41,6 +57,11 @@ def build_parser() -> argparse.ArgumentParser:
     export_lua.add_argument("project")
     export_lua.add_argument("-o", "--output")
     export_lua.set_defaults(func=_cmd_export_lua)
+
+    validate = sub.add_parser("validate", help="Validate project structure and references")
+    validate.add_argument("project")
+    validate.add_argument("--json", action="store_true", help="Emit machine-readable report")
+    validate.set_defaults(func=_cmd_validate)
 
     build = sub.add_parser("build", help="Generate Lua/GWZ and optionally GWC artifacts")
     build.add_argument("project")
@@ -69,3 +90,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

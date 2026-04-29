@@ -17,3 +17,7 @@ class ProjectFormatError(WherigoSdkError):
 
 class CompileError(WherigoSdkError):
     """Raised when GWC compilation fails."""
+
+
+class PackagingError(WherigoSdkError):
+    """Raised when Lua/GWZ artifact packaging fails."""
