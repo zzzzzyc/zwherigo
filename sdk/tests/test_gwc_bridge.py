@@ -22,6 +22,7 @@ def _write_fake_bridge(tmp_path: Path) -> Path:
     script_path = tmp_path / "fake_bridge.py"
     script_path.write_text(
         (
+            "#!/usr/bin/env python3\n"
             "import json,sys,pathlib\n"
             "idx = sys.argv.index('--request-json')\n"
             "payload = json.loads(sys.argv[idx+1])\n"
@@ -35,6 +36,10 @@ def _write_fake_bridge(tmp_path: Path) -> Path:
         ),
         encoding="utf-8",
     )
+    if os.name != "nt":
+        script_path.chmod(0o755)
+        return script_path
+
     cmd_path = tmp_path / "fake_bridge.cmd"
     cmd_path.write_text(f'@echo off\r\npython "{script_path}" %*\r\n', encoding="utf-8")
     return cmd_path
