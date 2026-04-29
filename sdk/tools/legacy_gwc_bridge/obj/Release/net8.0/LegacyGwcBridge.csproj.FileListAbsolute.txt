@@ -1,0 +1,14 @@
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\bin\Release\net8.0\LegacyGwcBridge.exe
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\bin\Release\net8.0\LegacyGwcBridge.deps.json
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\bin\Release\net8.0\LegacyGwcBridge.runtimeconfig.json
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\bin\Release\net8.0\LegacyGwcBridge.dll
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\bin\Release\net8.0\LegacyGwcBridge.pdb
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\obj\Release\net8.0\LegacyGwcBridge.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\obj\Release\net8.0\LegacyGwcBridge.AssemblyInfoInputs.cache
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\obj\Release\net8.0\LegacyGwcBridge.AssemblyInfo.cs
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\obj\Release\net8.0\LegacyGwcBridge.csproj.CoreCompileInputs.cache
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\obj\Release\net8.0\LegacyGwcBridge.dll
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\obj\Release\net8.0\refint\LegacyGwcBridge.dll
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\obj\Release\net8.0\LegacyGwcBridge.pdb
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\obj\Release\net8.0\LegacyGwcBridge.genruntimeconfig.cache
+C:\Users\zzzzz\.cursor\projects\c-Program-Files-x86-Groundspeak-Wherigo-Builder\wherigo-web-rewrite\python-sdk\tools\legacy_gwc_bridge\obj\Release\net8.0\ref\LegacyGwcBridge.dll

@@ -1,0 +1,71 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0": {}
+  },
+  "libraries": {},
+  "projectFileDependencyGroups": {
+    "net8.0": []
+  },
+  "packageFolders": {
+    "C:\\Users\\zzzzz\\AppData\\Local\\Temp\\cursor-sandbox-cache\\689173e1082cb01d2b3955faed098648\\nuget": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\zzzzz\\.cursor\\projects\\c-Program-Files-x86-Groundspeak-Wherigo-Builder\\wherigo-web-rewrite\\python-sdk\\tools\\legacy_gwc_bridge\\LegacyGwcBridge.csproj",
+      "projectName": "LegacyGwcBridge",
+      "projectPath": "C:\\Users\\zzzzz\\.cursor\\projects\\c-Program-Files-x86-Groundspeak-Wherigo-Builder\\wherigo-web-rewrite\\python-sdk\\tools\\legacy_gwc_bridge\\LegacyGwcBridge.csproj",
+      "packagesPath": "C:\\Users\\zzzzz\\AppData\\Local\\Temp\\cursor-sandbox-cache\\689173e1082cb01d2b3955faed098648\\nuget",
+      "outputPath": "C:\\Users\\zzzzz\\.cursor\\projects\\c-Program-Files-x86-Groundspeak-Wherigo-Builder\\wherigo-web-rewrite\\python-sdk\\tools\\legacy_gwc_bridge\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\zzzzz\\AppData\\Roaming\\NuGet\\NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net8.0": {
+        "targetAlias": "net8.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.416/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
