@@ -22,6 +22,14 @@ class ValidationReport:
             return f"Beta validation passed with {len(self.warnings)} warning(s)"
         return f"Beta validation failed with {len(self.errors)} error(s)"
 
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "valid": self.ok,
+            "summary": self.summary(),
+            "errors": list(self.errors),
+            "warnings": list(self.warnings),
+        }
+
 
 def collect_validation_errors(cartridge: Cartridge) -> list[str]:
     return validate_project(cartridge).errors
@@ -96,13 +104,9 @@ def validation_report(cartridge: Cartridge) -> dict[str, object]:
         "media_objects": len(cartridge.media_objects),
         "events": len(cartridge.events),
     }
-    return {
-        "valid": report.ok,
-        "summary": report.summary(),
-        "errors": list(report.errors),
-        "warnings": list(report.warnings),
-        "counts": counts,
-    }
+    payload = report.to_dict()
+    payload["counts"] = counts
+    return payload
 
 
 def validate_or_raise(cartridge: Cartridge) -> None:

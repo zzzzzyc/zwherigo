@@ -12,6 +12,7 @@ dependencies = []
 
 [project.scripts]
 wherigo = "wherigo_sdk.cli:main"
+wherigo-webui = "wherigo_sdk.webui.server:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

@@ -8,6 +8,7 @@ from wherigo_sdk.io import load_project
 from wherigo_sdk.lua import LuaEmitter
 from wherigo_sdk.model import validate_project
 from wherigo_sdk.packaging import ENV_BRIDGE_PATH, ENV_COMPILER, build_artifacts
+from wherigo_sdk.webui import run_webui
 
 
 def _cmd_export_lua(args: argparse.Namespace) -> int:
@@ -49,6 +50,11 @@ def _cmd_validate(args: argparse.Namespace) -> int:
     return 0 if report.ok else 1
 
 
+def _cmd_webui(args: argparse.Namespace) -> int:
+    run_webui(host=args.host, port=args.port, root=args.root, open_browser=not args.no_open)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="wherigo", description="Wherigo SDK CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -62,6 +68,13 @@ def build_parser() -> argparse.ArgumentParser:
     validate.add_argument("project")
     validate.add_argument("--json", action="store_true", help="Emit machine-readable report")
     validate.set_defaults(func=_cmd_validate)
+
+    webui = sub.add_parser("webui", help="Launch the local Material Design WebUI")
+    webui.add_argument("--host", default="127.0.0.1")
+    webui.add_argument("--port", default=8765, type=int)
+    webui.add_argument("--root", default=".", help="Workspace root for project load/save/build")
+    webui.add_argument("--no-open", action="store_true", help="Do not open the browser automatically")
+    webui.set_defaults(func=_cmd_webui)
 
     build = sub.add_parser("build", help="Generate Lua/GWZ and optionally GWC artifacts")
     build.add_argument("project")

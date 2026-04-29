@@ -53,3 +53,12 @@ def test_cli_module_entrypoint_runs_validate(tmp_path) -> None:
 
     assert proc.returncode == 0
     assert "Project is valid" in proc.stdout
+
+
+def test_webui_cli_parser_accepts_expected_options() -> None:
+    parser = main.__globals__["build_parser"]()
+    args = parser.parse_args(["webui", "--host", "0.0.0.0", "--port", "9000", "--root", "/tmp", "--no-open"])
+    assert args.host == "0.0.0.0"
+    assert args.port == 9000
+    assert args.root == "/tmp"
+    assert args.no_open is True
