@@ -10,7 +10,7 @@ Current beta-oriented end-to-end features:
 - GWC compile adapter abstraction
 - Build manifest output for generated Lua/GWZ/GWC artifacts
 - CLI: `wherigo validate`, `wherigo export-lua`, and `wherigo build`
-- Material Design inspired WebUI with OSM zone editing
+- Material Design 1 风格中文 WebUI with OSM zone editing
 - Editor API core: command-style CRUD, reference-safe delete, and in-memory transaction
 
 GWC backend options:
@@ -49,7 +49,7 @@ wherigo webui
 `<cartridge-name>.build.json` alongside artifacts so editor or CI tooling can
 discover the exact files that were produced.
 
-The WebUI runs locally at `http://127.0.0.1:8765` by default. Its map uses
-OpenStreetMap tiles and stores raw WGS84 latitude/longitude in each zone's
-`extras.lat` / `extras.lon` fields; it does not apply GCJ-02 or other coordinate
-offset transforms.
+The WebUI runs locally at `http://127.0.0.1:8765` by default, serves static files
+from the repository-root `webui/` directory (same level as `LICENSE`), and its
+map uses OpenStreetMap tiles while storing raw WGS84 latitude/longitude in each
+zone's `extras.lat` / `extras.lon` fields without GCJ-02 coordinate transforms.

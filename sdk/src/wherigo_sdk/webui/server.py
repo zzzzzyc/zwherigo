@@ -15,7 +15,7 @@ from wherigo_sdk.lua import LuaEmitter
 from wherigo_sdk.model import Cartridge, Event, Input, MediaObject, Variable, Zone, validate_project
 from wherigo_sdk.packaging import build_artifacts
 
-STATIC_DIR = Path(__file__).with_name("static")
+STATIC_DIR = Path(__file__).resolve().parents[4] / "webui"
 
 
 def _demo_cartridge() -> Cartridge:
@@ -245,11 +245,11 @@ def run(host: str = "127.0.0.1", port: int = 8765) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="wherigo-webui", description="Run the Wherigo SDK WebUI")
+    parser = argparse.ArgumentParser(prog="wherigo-webui", description="运行 Wherigo SDK WebUI")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--root", default=".")
-    parser.add_argument("--open", action="store_true", help="Open the WebUI in the default browser")
+    parser.add_argument("--open", action="store_true", help="在默认浏览器打开 WebUI")
     args = parser.parse_args(argv)
     run_webui(args.host, args.port, root=args.root, open_browser=args.open)
     return 0

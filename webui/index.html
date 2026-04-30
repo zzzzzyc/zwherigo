@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wherigo SDK 工作台</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="top-app-bar">
+      <div class="brand">
+        <div class="logo">W</div>
+        <div>
+          <p class="eyebrow">Wherigo SDK</p>
+          <h1>创作工作台</h1>
+          <p class="subtitle">地理寻宝卡带编辑平台</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="tonal" id="newProject">新建</button>
+        <button class="tonal" id="validateButton">校验</button>
+        <button id="buildButton">构建</button>
+      </div>
+    </header>
+
+    <main class="shell">
+      <aside class="rail">
+        <section class="card project-card">
+          <h2>项目</h2>
+          <div class="grid-2">
+            <label>卡带 ID <input id="projectId" autocomplete="off" /></label>
+            <label>名称 <input id="projectName" autocomplete="off" /></label>
+          </div>
+          <label>项目文件 <input id="projectFile" placeholder="project.wigi.json" /></label>
+          <div class="toolbar">
+            <button class="secondary" id="importButton">导入 JSON</button>
+            <button class="secondary" id="downloadJson">导出 JSON</button>
+            <button class="secondary" id="exportLua">刷新 Lua</button>
+          </div>
+          <input id="fileInput" type="file" accept="application/json,.json" hidden />
+        </section>
+
+        <section class="card">
+          <h2>实体</h2>
+          <nav class="entity-tabs" id="entityNav"></nav>
+        </section>
+
+        <section class="card">
+          <h2>运行结果</h2>
+          <pre id="statusLog" class="result-box">准备就绪。</pre>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <section class="card">
+          <p class="eyebrow">编辑流程</p>
+          <h2 id="entityTitle">区域</h2>
+          <p class="section-subtitle">在浏览器里完成编辑、校验与构建。</p>
+          <div class="toolbar">
+            <button id="addEntity">新增实体</button>
+            <button class="danger" id="deleteEntity">删除选中</button>
+          </div>
+          <div class="list" id="entityList"></div>
+          <div class="entity-editor" id="entityForm"></div>
+        </section>
+
+        <section class="card">
+          <h2>事件</h2>
+          <p class="section-subtitle">编辑回调和脚本。</p>
+          <div id="eventList" class="results"></div>
+          <button class="secondary" id="addEvent">新增事件</button>
+        </section>
+
+        <section class="card">
+          <h2>作者脚本</h2>
+          <textarea id="authorScripts" spellcheck="false"></textarea>
+        </section>
+      </section>
+
+      <aside class="map-panel">
+        <section class="card">
+          <div class="map-header">
+            <div>
+              <p class="eyebrow">OpenStreetMap</p>
+              <h2>区域地图</h2>
+            </div>
+            <span class="badge">地图定位</span>
+          </div>
+          <div id="map" class="map"></div>
+          <p class="map-note">点击地图可更新当前区域的位置。</p>
+          <div id="selectedZoneInfo" class="zone-info">请选择或新增一个区域。</div>
+        </section>
+
+        <section class="card">
+          <h2>Lua 预览</h2>
+          <textarea id="luaPreview" rows="12" spellcheck="false"></textarea>
+        </section>
+      </aside>
+    </main>
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <template id="entityCardTemplate">
+      <article class="card entity-card">
+        <div class="entity-heading">
+          <div>
+            <p class="eyebrow entity-type"></p>
+            <h3 class="entity-title"></h3>
+          </div>
+          <button class="danger remove-button" type="button" title="删除">删除</button>
+        </div>
+        <div class="fields"></div>
+      </article>
+    </template>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
