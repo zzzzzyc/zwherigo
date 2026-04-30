@@ -120,7 +120,7 @@ function renderEntityList() {
   list.innerHTML = "";
   const toolbar = document.createElement("article");
   toolbar.className = "card entity-toolbar";
-  toolbar.innerHTML = `<h2>${schema.label}</h2><button class="filled" type="button">Add ${schema.singular}</button>`;
+  toolbar.innerHTML = `<h2>${schema.label}</h2><button class="filled" type="button">新增${schema.label}</button>`;
   toolbar.querySelector("button").onclick = addEntity;
   list.appendChild(toolbar);
   for (const entity of state.project[state.selectedCollection]) {
@@ -159,15 +159,15 @@ function renderFields(container, entity, schema) {
   }
   if (state.selectedCollection === "zones") {
     entity.extras = entity.extras || {};
-    container.appendChild(numberField("Latitude (WGS84)", entity.extras.lat ?? 39.9042, (value) => {
+    container.appendChild(numberField("纬度（WGS84）", entity.extras.lat ?? 39.9042, (value) => {
       entity.extras.lat = value;
       renderMap();
     }));
-    container.appendChild(numberField("Longitude (WGS84)", entity.extras.lon ?? 116.4074, (value) => {
+    container.appendChild(numberField("经度（WGS84）", entity.extras.lon ?? 116.4074, (value) => {
       entity.extras.lon = value;
       renderMap();
     }));
-    container.appendChild(numberField("Radius meters", entity.extras.radius_m ?? entity.extras.radius ?? 40, (value) => {
+    container.appendChild(numberField("半径（米）", entity.extras.radius_m ?? entity.extras.radius ?? 40, (value) => {
       entity.extras.radius_m = value;
       renderMap();
     }));
@@ -235,15 +235,15 @@ function renderEvents() {
     card.className = "event-card";
     card.innerHTML = `
       <div class="event-grid">
-        <label class="field"><span>Name</span><input data-field="name" value="${escapeAttr(event.name || "")}"></label>
-        <label class="field"><span>Object name</span><input data-field="object_name" value="${escapeAttr(event.object_name || "")}"></label>
-        <label class="field"><span>Type</span><select data-field="event_type">
+        <label class="field"><span>名称</span><input data-field="name" value="${escapeAttr(event.name || "")}"></label>
+        <label class="field"><span>对象名</span><input data-field="object_name" value="${escapeAttr(event.object_name || "")}"></label>
+        <label class="field"><span>类型</span><select data-field="event_type">
           <option value="wig">wig</option><option value="callback">callback</option>
         </select></label>
-        <label class="field"><span>Callback key</span><input type="number" data-field="callback_key" value="${event.callback_key || 0}"></label>
+        <label class="field"><span>回调键</span><input type="number" data-field="callback_key" value="${event.callback_key || 0}"></label>
       </div>
-      <label class="field"><span>Lua script</span><textarea data-field="lua_script">${escapeHtml(event.lua_script || "")}</textarea></label>
-      <button class="text-button danger" data-remove>Remove event</button>
+      <label class="field"><span>Lua 脚本</span><textarea data-field="lua_script">${escapeHtml(event.lua_script || "")}</textarea></label>
+      <button class="text-button danger" data-remove>删除事件</button>
     `;
     card.querySelector("[data-field='event_type']").value = event.event_type || "wig";
     card.querySelectorAll("[data-field]").forEach((input) => {
@@ -262,11 +262,11 @@ function renderEvents() {
 
 function addEvent() {
   state.project.events.push({
-    name: `On${state.project.events.length + 1}`,
+    name: `事件${state.project.events.length + 1}`,
     object_name: state.project.zones[0]?.name || "",
     event_type: "wig",
     callback_key: 0,
-    lua_script: "-- Lua here",
+    lua_script: "-- 在这里写 Lua",
     groups: [],
   });
   renderEvents();
