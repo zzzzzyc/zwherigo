@@ -144,3 +144,21 @@ def test_webui_preset_endpoints_work() -> None:
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_webui_preset_response_exposes_zone_trigger_metadata() -> None:
+    server, base = _server()
+    try:
+        presets = _get_json(base + "/api/presets")
+        zone_enter = next(entry for entry in presets["presets"] if entry["id"] == "zone_enter")
+        assert zone_enter["trigger"] == "OnEnter"
+        preview = _post_json(
+            base + "/api/presets/preview",
+            {"template_id": "zone_enter", "params": {"zone_name": "Start", "message": "Hi"}},
+        )
+        trigger = preview["event"]["extras"]["trigger"]
+        assert trigger["kind"] == "zone_on_enter"
+        assert trigger["zone_name"] == "Start"
+    finally:
+        server.shutdown()
+        server.server_close()

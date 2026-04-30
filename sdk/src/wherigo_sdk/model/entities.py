@@ -51,12 +51,28 @@ class Zone:
     description: str = ""
     extras: dict[str, Any] = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        shape_type = str(self.extras.get("shape_type", "circle"))
+        if shape_type == "polygon":
+            points = self.extras.get("points")
+            if not isinstance(points, list):
+                self.extras["points"] = []
+        else:
+            self.extras.setdefault("shape_type", "circle")
+
 
 @dataclass
 class Item:
     id: str
     name: str
     description: str = ""
+    visible: bool = True
+    active: bool = True
+    enabled: bool = True
+    allow_take: bool = True
+    allow_drop: bool = True
+    allow_use: bool = True
+    allow_give: bool = True
     extras: dict[str, Any] = field(default_factory=dict)
 
 
