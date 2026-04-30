@@ -118,6 +118,9 @@ def test_webui_static_dom_ids_match_frontend_script() -> None:
         assert 'id="entityNav"' in html
         assert 'id="entityCardTemplate"' in html
         assert '$("entityNav")' in script or '$("tabs")' not in script
+        assert 'id="dirtyState"' in html
+        assert ('id="quickZoneEnter"' in html) or ('id="quickAddZoneEnter"' in html)
+        assert ('id="quickZoneExit"' in html) or ('id="quickAddZoneExit"' in html)
         assert "cartId" not in script
         assert "cartName" not in script
     finally:
