@@ -13,8 +13,8 @@
         <div class="logo">W</div>
         <div>
           <p class="eyebrow">Wherigo SDK</p>
-          <h1>Web 工作台</h1>
-          <p class="subtitle">专业地理寻宝卡带编辑平台</p>
+          <h1>创作工作台</h1>
+          <p class="subtitle">地理寻宝卡带编辑平台</p>
         </div>
       </div>
       <div class="actions">
@@ -56,9 +56,7 @@
         <section class="card">
           <p class="eyebrow">编辑流程</p>
           <h2 id="entityTitle">区域</h2>
-          <p class="section-subtitle">
-            在浏览器中完成设计、校验、Lua 导出与 GWZ 构建。
-          </p>
+          <p class="section-subtitle">在浏览器里完成编辑、校验与构建。</p>
           <div class="toolbar">
             <button id="addEntity">新增实体</button>
             <button class="danger" id="deleteEntity">删除选中</button>
@@ -69,7 +67,7 @@
 
         <section class="card">
           <h2>事件</h2>
-          <p class="section-subtitle">编辑 WIG 回调或直接 Lua 片段。</p>
+          <p class="section-subtitle">编辑回调和脚本。</p>
           <div id="eventList" class="results"></div>
           <button class="secondary" id="addEvent">新增事件</button>
         </section>
@@ -87,13 +85,10 @@
               <p class="eyebrow">OpenStreetMap</p>
               <h2>区域地图</h2>
             </div>
-            <span class="badge">WGS84，无偏移</span>
+            <span class="badge">地图定位</span>
           </div>
           <div id="map" class="map"></div>
-          <p class="map-note">
-            点击地图可为当前区域写入 <code>extras.lat</code> 与 <code>extras.lon</code>，
-            使用 OSM 原始 WGS84 坐标（不做 GCJ-02 偏移）。
-          </p>
+          <p class="map-note">点击地图可更新当前区域的位置。</p>
           <div id="selectedZoneInfo" class="zone-info">请选择或新增一个区域。</div>
         </section>
 

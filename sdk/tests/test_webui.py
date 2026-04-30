@@ -38,7 +38,7 @@ def test_webui_serves_material_shell_and_project_api() -> None:
         with urllib.request.urlopen(base + "/", timeout=5) as response:
             html = response.read().decode("utf-8")
         assert "top-app-bar" in html
-        assert "OpenStreetMap" in html
+        assert "地图" in html
         assert "leaflet@1.9.4/dist/leaflet.js" in html
         assert "integrity=" not in html
 
@@ -98,7 +98,7 @@ def test_webui_serves_static_assets_without_duplicate_static_prefix() -> None:
     try:
         with urllib.request.urlopen(base + "/static/app.js", timeout=5) as response:
             script = response.read().decode("utf-8")
-        assert "OpenStreetMap" in script
+        assert "地图初始化失败" in script
         assert "function renderMap" in script
     finally:
         server.shutdown()

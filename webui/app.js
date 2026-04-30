@@ -159,15 +159,15 @@ function renderFields(container, entity, schema) {
   }
   if (state.selectedCollection === "zones") {
     entity.extras = entity.extras || {};
-    container.appendChild(numberField("纬度（WGS84）", entity.extras.lat ?? 39.9042, (value) => {
+    container.appendChild(numberField("纬度", entity.extras.lat ?? 39.9042, (value) => {
       entity.extras.lat = value;
       renderMap();
     }));
-    container.appendChild(numberField("经度（WGS84）", entity.extras.lon ?? 116.4074, (value) => {
+    container.appendChild(numberField("经度", entity.extras.lon ?? 116.4074, (value) => {
       entity.extras.lon = value;
       renderMap();
     }));
-    container.appendChild(numberField("半径（米）", entity.extras.radius_m ?? entity.extras.radius ?? 40, (value) => {
+    container.appendChild(numberField("半径 米", entity.extras.radius_m ?? entity.extras.radius ?? 40, (value) => {
       entity.extras.radius_m = value;
       renderMap();
     }));
