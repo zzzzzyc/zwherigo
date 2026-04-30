@@ -33,6 +33,7 @@ class Event:
     callback_key: int = 0
     lua_script: str | None = None
     groups: list[ScriptGroup] = field(default_factory=list)
+    extras: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

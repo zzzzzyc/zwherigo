@@ -1,0 +1,56 @@
+{
+  "id": "template-demo",
+  "name": "Template Demo",
+  "file_name": "template-demo.wigi.json",
+  "author_scripts": "",
+  "zones": [
+    {
+      "id": "zone-start",
+      "name": "StartZone",
+      "description": "起始区域",
+      "extras": {
+        "lat": 39.9042,
+        "lon": 116.4074,
+        "radius_m": 45
+      }
+    }
+  ],
+  "items": [],
+  "characters": [],
+  "tasks": [],
+  "variables": [],
+  "inputs": [],
+  "media_objects": [],
+  "events": [
+    {
+      "name": "进入区域: StartZone",
+      "object_name": "StartZone",
+      "event_type": "wig",
+      "callback_key": 0,
+      "lua_script": null,
+      "groups": [
+        {
+          "description": "进入区域触发",
+          "comment": "",
+          "lines": [
+            {
+              "code": "Wherigo.MessageBox(\"欢迎进入\")"
+            }
+          ]
+        }
+      ],
+      "extras": {
+        "editor_mode": "template",
+        "template": {
+          "id": "zone_enter",
+          "version": "1",
+          "params": {
+            "zone_name": "StartZone",
+            "message": "欢迎进入"
+          }
+        }
+      }
+    }
+  ],
+  "extras": {}
+}

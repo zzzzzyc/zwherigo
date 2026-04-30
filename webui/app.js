@@ -30,6 +30,8 @@ const state = {
   selectedId: null,
   map: null,
   markers: new Map(),
+  presets: [],
+  presetDraft: { template_id: "", params: {} },
 };
 
 const $ = (id) => document.getElementById(id);
@@ -71,6 +73,10 @@ function setProject(project) {
     state.project[key] = state.project[key] || [];
   }
   state.project.events = state.project.events || [];
+  state.project.events.forEach((event) => {
+    event.extras = event.extras || {};
+    event.extras.editor_mode = event.extras.template ? "template" : "lua";
+  });
   state.selectedCollection = "zones";
   state.selectedId = state.project.zones[0]?.id || null;
   renderAll();
@@ -82,6 +88,7 @@ function renderAll() {
   renderEntityList();
   renderEntityForm();
   renderEvents();
+  renderPresetBuilder();
   renderAuthorScripts();
   renderMap();
 }
@@ -193,18 +200,40 @@ function defaultEntity() {
   return entity;
 }
 
-function addEntity() {
+async function addEntity() {
   const entity = defaultEntity();
-  state.project[state.selectedCollection].push(entity);
-  state.selectedId = entity.id;
-  renderAll();
+  try {
+    const data = await api("/api/command", {
+      method: "POST",
+      body: JSON.stringify({ op: "add", entity_type: entitySchemas[state.selectedCollection].singular, payload: entity }),
+    });
+    setProject(data.state.cartridge);
+    state.selectedCollection = state.selectedCollection;
+    state.selectedId = entity.id;
+    showToast(`已新增${entitySchemas[state.selectedCollection].label}`);
+  } catch (error) {
+    showToast(`新增失败：${error.message}`);
+  }
 }
 
-function removeEntity() {
+async function removeEntity() {
   if (!state.selectedId) return;
-  state.project[state.selectedCollection] = state.project[state.selectedCollection].filter((entity) => entity.id !== state.selectedId);
-  state.selectedId = state.project[state.selectedCollection][0]?.id || null;
-  renderAll();
+  try {
+    const data = await api("/api/command", {
+      method: "POST",
+      body: JSON.stringify({
+        op: "remove",
+        entity_type: entitySchemas[state.selectedCollection].singular,
+        entity_id: state.selectedId,
+        mode: "restrict",
+      }),
+    });
+    setProject(data.state.cartridge);
+    state.selectedId = state.project[state.selectedCollection][0]?.id || null;
+    showToast("删除成功");
+  } catch (error) {
+    showToast(`删除失败：${error.message}`);
+  }
 }
 
 function renderEntityForm() {
@@ -231,6 +260,10 @@ function renderEvents() {
   const list = $("eventList");
   list.innerHTML = "";
   state.project.events.forEach((event, index) => {
+    event.extras = event.extras || {};
+    const mode = event.extras.editor_mode || (event.extras.template ? "template" : "lua");
+    event.extras.editor_mode = mode;
+    const template = event.extras.template || null;
     const card = document.createElement("div");
     card.className = "event-card";
     card.innerHTML = `
@@ -241,15 +274,37 @@ function renderEvents() {
           <option value="wig">wig</option><option value="callback">callback</option>
         </select></label>
         <label class="field"><span>回调键</span><input type="number" data-field="callback_key" value="${event.callback_key || 0}"></label>
+        <label class="field"><span>编辑模式</span>
+          <select data-field="editor_mode">
+            <option value="template">模板</option>
+            <option value="lua">Lua</option>
+          </select>
+        </label>
       </div>
+      <div class="field full" data-template-panel></div>
       <label class="field"><span>Lua 脚本</span><textarea data-field="lua_script">${escapeHtml(event.lua_script || "")}</textarea></label>
       <button class="text-button danger" data-remove>删除事件</button>
     `;
     card.querySelector("[data-field='event_type']").value = event.event_type || "wig";
+    card.querySelector("[data-field='editor_mode']").value = mode;
+    const scriptInput = card.querySelector("[data-field='lua_script']");
+    scriptInput.disabled = mode !== "lua";
+    const templatePanel = card.querySelector("[data-template-panel]");
+    renderEventTemplatePanel(templatePanel, event, index);
     card.querySelectorAll("[data-field]").forEach((input) => {
       input.oninput = () => {
         const field = input.dataset.field;
-        event[field] = field === "callback_key" ? Number(input.value || 0) : input.value;
+        if (field === "callback_key") {
+          event[field] = Number(input.value || 0);
+          return;
+        }
+        if (field === "editor_mode") {
+          event.extras.editor_mode = input.value;
+          if (input.value === "template") event.lua_script = "";
+          renderEvents();
+          return;
+        }
+        event[field] = input.value;
       };
     });
     card.querySelector("[data-remove]").onclick = () => {
@@ -268,8 +323,135 @@ function addEvent() {
     callback_key: 0,
     lua_script: "-- 在这里写 Lua",
     groups: [],
+    extras: { editor_mode: "lua" },
   });
   renderEvents();
+}
+
+function renderEventTemplatePanel(container, event, eventIndex) {
+  if (event.extras?.editor_mode !== "template") {
+    container.innerHTML = `<span class="helper">当前为 Lua 高级编辑模式。</span>`;
+    return;
+  }
+  const template = event.extras?.template || {};
+  const preset = state.presets.find((entry) => entry.id === template.id) || state.presets[0];
+  if (!preset) {
+    container.innerHTML = `<span class="helper">模板库尚未加载。</span>`;
+    return;
+  }
+  const params = { ...(template.params || {}) };
+  const fields = preset.params
+    .map((spec) => {
+      const value = params[spec.key] ?? "";
+      const inputType = spec.type === "number" ? "number" : "text";
+      return `<label class="field"><span>${spec.label}</span><input data-param="${spec.key}" type="${inputType}" value="${escapeAttr(value)}"></label>`;
+    })
+    .join("");
+  container.innerHTML = `
+    <div class="event-grid">
+      <label class="field"><span>模板</span>
+        <select data-template-id>
+          ${state.presets.map((entry) => `<option value="${entry.id}" ${entry.id === preset.id ? "selected" : ""}>${entry.label}</option>`).join("")}
+        </select>
+      </label>
+      <div class="helper full">${escapeHtml(preset.description || "")}</div>
+      ${fields}
+      <button type="button" class="secondary" data-rebuild>按模板重建脚本</button>
+    </div>
+  `;
+  container.querySelector("[data-template-id]").onchange = (e) => {
+    const selected = state.presets.find((entry) => entry.id === e.target.value);
+    event.extras.template = { id: selected.id, version: selected.version, params: {} };
+    renderEvents();
+  };
+  container.querySelectorAll("[data-param]").forEach((input) => {
+    input.oninput = () => {
+      event.extras.template = event.extras.template || { id: preset.id, version: preset.version, params: {} };
+      event.extras.template.params[input.dataset.param] = input.type === "number" ? Number(input.value || 0) : input.value;
+    };
+  });
+  container.querySelector("[data-rebuild]").onclick = async () => {
+    try {
+      const templateId = container.querySelector("[data-template-id]").value;
+      const preview = await api("/api/presets/preview", {
+        method: "POST",
+        body: JSON.stringify({
+          template_id: templateId,
+          params: event.extras.template?.params || {},
+        }),
+      });
+      state.project.events[eventIndex] = {
+        ...state.project.events[eventIndex],
+        ...preview.event,
+        extras: {
+          ...(preview.event.extras || {}),
+          editor_mode: "template",
+        },
+      };
+      renderEvents();
+      showToast("已按模板重建");
+    } catch (error) {
+      showToast(`模板重建失败：${error.message}`);
+    }
+  };
+}
+
+function renderPresetBuilder() {
+  const box = $("presetBuilder");
+  if (!box) return;
+  if (!state.presets.length) {
+    box.innerHTML = `<div class="helper">模板库加载中...</div>`;
+    return;
+  }
+  const current = state.presets.find((entry) => entry.id === state.presetDraft.template_id) || state.presets[0];
+  state.presetDraft.template_id = current.id;
+  state.presetDraft.params = state.presetDraft.params || {};
+  const fields = current.params
+    .map((spec) => {
+      const inputType = spec.type === "number" ? "number" : "text";
+      const value = state.presetDraft.params[spec.key] ?? "";
+      return `<label class="field"><span>${spec.label}</span><input data-draft-param="${spec.key}" type="${inputType}" value="${escapeAttr(value)}"></label>`;
+    })
+    .join("");
+  box.innerHTML = `
+    <div class="event-card">
+      <div class="event-grid">
+        <label class="field"><span>事件模板</span>
+          <select id="presetSelect">${state.presets.map((entry) => `<option value="${entry.id}" ${entry.id === current.id ? "selected" : ""}>${entry.label}</option>`).join("")}</select>
+        </label>
+        <div class="helper full">${escapeHtml(current.description || "")}</div>
+        ${fields}
+        <button class="secondary" type="button" id="createFromPreset">创建模板事件</button>
+      </div>
+    </div>
+  `;
+  $("presetSelect").onchange = () => {
+    state.presetDraft.template_id = $("presetSelect").value;
+    state.presetDraft.params = {};
+    renderPresetBuilder();
+  };
+  box.querySelectorAll("[data-draft-param]").forEach((input) => {
+    input.oninput = () => {
+      state.presetDraft.params[input.dataset.draftParam] = input.type === "number" ? Number(input.value || 0) : input.value;
+    };
+  });
+  $("createFromPreset").onclick = createEventFromPreset;
+}
+
+async function createEventFromPreset() {
+  try {
+    const data = await api("/api/presets/apply", {
+      method: "POST",
+      body: JSON.stringify({
+        template_id: state.presetDraft.template_id,
+        params: state.presetDraft.params,
+      }),
+    });
+    setProject(data.state.cartridge);
+    showToast("模板事件已添加");
+  } catch (error) {
+    showToast(`创建失败：${error.message}`);
+  }
 }
 
 function renderAuthorScripts() {
@@ -427,6 +609,7 @@ function wireEvents() {
   $("addEntity").onclick = addEntity;
   $("deleteEntity").onclick = removeEntity;
   $("addEvent").onclick = addEvent;
+  $("addEventFromTemplate").onclick = createEventFromPreset;
   $("projectId").oninput = saveMeta;
   $("projectName").oninput = saveMeta;
   $("projectFile").oninput = saveMeta;
@@ -435,6 +618,17 @@ function wireEvents() {
 
 wireEvents();
 initMap();
+fetch("/api/presets")
+  .then((res) => res.json())
+  .then((data) => {
+    state.presets = data.presets || [];
+    state.presetDraft.template_id = state.presets[0]?.id || "";
+    renderPresetBuilder();
+  })
+  .catch(() => {
+    state.presets = [];
+    renderPresetBuilder();
+  });
 // Load project from server on startup
 fetch("/api/project")
   .then(res => res.json())

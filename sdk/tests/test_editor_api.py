@@ -105,3 +105,5 @@ def test_save_and_lua_smoke_after_editor_ops(tmp_path: Path) -> None:
     loaded = load_project(project_path)
     lua_text = LuaEmitter(loaded).render()
     assert "return cartEditorCart" in lua_text
+
+

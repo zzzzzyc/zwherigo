@@ -32,6 +32,19 @@ class ReferenceGraph:
                             target_id=target_id,
                         )
                     )
+        target_name = self._entity_name(target_type, target_id)
+        if target_name and target_type in {"zone", "item", "character", "task", "variable", "input", "media_object"}:
+            for index, event in enumerate(self.cartridge.events):
+                if event.object_name == target_name:
+                    refs.append(
+                        Reference(
+                            source_type="event",
+                            source_id=f"event-{index}",
+                            field="object_name",
+                            target_type=target_type,
+                            target_id=target_id,
+                        )
+                    )
         return refs
 
     def rename_name_references(self, old_name: str, new_name: str) -> int:
@@ -41,3 +54,20 @@ class ReferenceGraph:
                 event.object_name = new_name
                 updated += 1
         return updated
+
+    def _entity_name(self, target_type: str, target_id: str) -> str | None:
+        field_name = {
+            "zone": "zones",
+            "item": "items",
+            "character": "characters",
+            "task": "tasks",
+            "variable": "variables",
+            "input": "inputs",
+            "media_object": "media_objects",
+        }.get(target_type)
+        if not field_name:
+            return None
+        for obj in getattr(self.cartridge, field_name):
+            if obj.id == target_id:
+                return obj.name
+        return None

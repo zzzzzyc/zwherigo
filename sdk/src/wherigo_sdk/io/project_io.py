@@ -67,6 +67,7 @@ def cartridge_from_dict(raw: dict[str, Any]) -> Cartridge:
                         )
                         for group in ev.get("groups", [])
                     ],
+                    extras=dict(ev.get("extras", {})),
                 )
                 for ev in raw.get("events", [])
             ],

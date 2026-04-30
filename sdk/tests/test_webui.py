@@ -123,3 +123,24 @@ def test_webui_static_dom_ids_match_frontend_script() -> None:
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_webui_preset_endpoints_work() -> None:
+    server, base = _server()
+    try:
+        presets = _get_json(base + "/api/presets")
+        assert "presets" in presets
+        assert any(entry["id"] == "zone_enter" for entry in presets["presets"])
+        preview = _post_json(
+            base + "/api/presets/preview",
+            {"template_id": "zone_enter", "params": {"zone_name": "Start", "message": "Hi"}},
+        )
+        assert preview["event"]["name"].startswith("进入区域")
+        applied = _post_json(
+            base + "/api/presets/apply",
+            {"template_id": "zone_enter", "params": {"zone_name": "Start", "message": "Hi"}},
+        )
+        assert applied["state"]["cartridge"]["events"]
+    finally:
+        server.shutdown()
+        server.server_close()
