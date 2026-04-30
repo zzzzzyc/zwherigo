@@ -2,13 +2,15 @@
 
 `wherigo_sdk` is a pure Python core SDK for Wherigo tooling.
 
-Current thin end-to-end features:
+Current beta-oriented end-to-end features:
 
 - Project model and JSON I/O
 - Lua emission for core objects/events
-- GWZ packaging
+- GWZ packaging with missing-media checks
 - GWC compile adapter abstraction
-- CLI: `wherigo export-lua` and `wherigo build`
+- Build manifest output for generated Lua/GWZ/GWC artifacts
+- CLI: `wherigo validate`, `wherigo export-lua`, and `wherigo build`
+- Material Design inspired WebUI with OSM zone editing
 - Editor API core: command-style CRUD, reference-safe delete, and in-memory transaction
 
 GWC backend options:
@@ -33,3 +35,21 @@ result = session.apply_command({
 if result.ok:
     save_project(session.cartridge, "project.edited.wigi.json")
 ```
+
+Validation and build quick checks:
+
+```bash
+wherigo validate project.wigi.json
+wherigo build project.wigi.json -o dist
+wherigo webui
+```
+
+`wherigo validate --json project.wigi.json` prints a machine-readable report with
+`valid`, `errors`, `warnings`, and entity counts. Builds write
+`<cartridge-name>.build.json` alongside artifacts so editor or CI tooling can
+discover the exact files that were produced.
+
+The WebUI runs locally at `http://127.0.0.1:8765` by default. Its map uses
+OpenStreetMap tiles and stores raw WGS84 latitude/longitude in each zone's
+`extras.lat` / `extras.lon` fields; it does not apply GCJ-02 or other coordinate
+offset transforms.

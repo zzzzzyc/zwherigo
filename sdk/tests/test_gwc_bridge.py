@@ -35,8 +35,9 @@ def _write_fake_bridge(tmp_path: Path) -> Path:
         ),
         encoding="utf-8",
     )
-    cmd_path = tmp_path / "fake_bridge.cmd"
-    cmd_path.write_text(f'@echo off\r\npython "{script_path}" %*\r\n', encoding="utf-8")
+    cmd_path = tmp_path / "fake_bridge"
+    cmd_path.write_text(f'#!/bin/sh\npython3 "{script_path}" "$@"\n', encoding="utf-8")
+    cmd_path.chmod(0o755)
     return cmd_path
 
 

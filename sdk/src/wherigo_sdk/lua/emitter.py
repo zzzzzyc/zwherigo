@@ -7,7 +7,11 @@ from wherigo_sdk.model import Action, Cartridge, Condition
 
 def _lua_name(text: str) -> str:
     cleaned = "".join(ch if ch.isalnum() else "_" for ch in text.strip())
-    return cleaned or "unnamed"
+    if not cleaned:
+        return "unnamed"
+    if cleaned[0].isdigit():
+        return f"_{cleaned}"
+    return cleaned
 
 
 class LuaEmitter:
@@ -33,7 +37,9 @@ class LuaEmitter:
         )
 
         for event in [e for e in c.events if e.event_type == "wig"]:
-            fn_name = f"{event.object_name}_{event.name}" if event.object_name else event.name
+            object_name = _lua_name(event.object_name)
+            event_name = _lua_name(event.name)
+            fn_name = f"{object_name}_{event_name}" if event.object_name else event_name
             out.append(f"function {fn_name}()")
             out.extend(self._render_event_body(event))
             out.append("end")

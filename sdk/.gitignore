@@ -1,0 +1,3 @@
+src/wherigo_sdk.egg-info/
+__pycache__/
+*.py[cod]
