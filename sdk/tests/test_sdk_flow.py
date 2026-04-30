@@ -61,7 +61,30 @@ def test_lua_emitter_outputs_expected_markers(tmp_path: Path) -> None:
     lua_text = LuaEmitter(cartridge).render()
     assert "--#LASTCALLBACKKEY=0#--" in lua_text
     assert "function cartDemoCart_OnStart()" in lua_text
+    assert "__wigi_item_caps" not in lua_text
     assert "return cartDemoCart" in lua_text
+
+
+def test_lua_emitter_includes_item_capability_helpers_when_items_exist() -> None:
+    cartridge = Cartridge(
+        id="cart-cap",
+        name="CapCart",
+        items=[],
+    )
+    cartridge.items.append(
+        __import__("wherigo_sdk.model", fromlist=["Item"]).Item(
+            id="item-1",
+            name="Key Item",
+            allow_use=False,
+            allow_take=True,
+            allow_drop=False,
+            allow_give=True,
+        )
+    )
+    lua_text = LuaEmitter(cartridge).render()
+    assert "__wigi_item_caps" in lua_text
+    assert "function __wigi_can_use" in lua_text
+    assert "key_item" in lua_text
 
 
 def test_build_artifacts_creates_lua_and_gwz(tmp_path: Path) -> None:

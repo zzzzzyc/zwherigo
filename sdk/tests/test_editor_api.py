@@ -107,3 +107,27 @@ def test_save_and_lua_smoke_after_editor_ops(tmp_path: Path) -> None:
     assert "return cartEditorCart" in lua_text
 
 
+def test_add_item_with_capability_fields() -> None:
+    cartridge = _base_cartridge(Path("."))
+    session = EditorSession(cartridge)
+    result = session.apply_command(
+        {
+            "op": "add",
+            "entity_type": "item",
+            "payload": {
+                "id": "item-2",
+                "name": "Key",
+                "visible": True,
+                "active": True,
+                "enabled": True,
+                "allow_take": True,
+                "allow_drop": False,
+                "allow_use": True,
+                "allow_give": False,
+            },
+        }
+    )
+    assert result.ok
+    assert cartridge.items[0].allow_drop is False
+
+

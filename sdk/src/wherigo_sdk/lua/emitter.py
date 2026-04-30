@@ -14,6 +14,10 @@ def _lua_name(text: str) -> str:
     return cleaned
 
 
+def _lua_item_key(text: str) -> str:
+    return _lua_name(text).lower()
+
+
 class LuaEmitter:
     """Thin emitter that follows legacy section ordering."""
 
@@ -30,11 +34,15 @@ class LuaEmitter:
                 "-- Builder Generated Lua (thin mode)",
                 "--",
                 "",
+                "-- Item capability defaults derived from editor model.",
+                "-- These helpers are consumed by template-generated events.",
                 "-------------------------------------------------------------------------------",
                 "------Builder Generated functions, Do not Edit, this will be overwritten------",
                 "-------------------------------------------------------------------------------",
             ]
         )
+        out.extend(self._render_item_capability_helpers())
+        out.append("")
 
         for event in [e for e in c.events if e.event_type == "wig"]:
             object_name = _lua_name(event.object_name)
@@ -118,3 +126,38 @@ class LuaEmitter:
             if open_if:
                 body.append("end")
         return body
+
+    def _render_item_capability_helpers(self) -> list[str]:
+        if not self.cartridge.items:
+            return []
+        lines: list[str] = ["local __wigi_item_caps = {"]
+        for item in self.cartridge.items:
+            safe_key = _lua_item_key(item.name or item.id)
+            lines.append(
+                "  "
+                + f'{safe_key} = {{ visible={self._lua_bool(item.visible)}, active={self._lua_bool(item.active)}, enabled={self._lua_bool(item.enabled)}, '
+                + f'take={self._lua_bool(item.allow_take)}, drop={self._lua_bool(item.allow_drop)}, use={self._lua_bool(item.allow_use)}, give={self._lua_bool(item.allow_give)} }},'
+            )
+        lines.extend(
+            [
+                "}",
+                "local function __wigi_key(name)",
+                "  return string.gsub(string.lower(tostring(name or \"\")), \"[^%w]\", \"_\")",
+                "end",
+                "local function __wigi_can_use(item_name, action_name)",
+                "  local caps = __wigi_item_caps[__wigi_key(item_name)]",
+                "  if not caps then return true end",
+                "  if not caps.visible or not caps.active or not caps.enabled then return false end",
+                "  if action_name == \"take\" then return caps.take end",
+                "  if action_name == \"drop\" then return caps.drop end",
+                "  if action_name == \"use\" then return caps.use end",
+                "  if action_name == \"give\" then return caps.give end",
+                "  return true",
+                "end",
+            ]
+        )
+        return lines
+
+    @staticmethod
+    def _lua_bool(value: bool) -> str:
+        return "true" if value else "false"

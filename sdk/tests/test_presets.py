@@ -23,6 +23,8 @@ def test_apply_event_preset_adds_template_metadata() -> None:
     assert result.event.name.startswith("进入区域")
     assert result.event.extras["template"]["id"] == "zone_enter"
     assert result.event.extras["template"]["params"]["zone_name"] == "StartZone"
+    assert result.event.extras["trigger"]["kind"] == "zone_on_enter"
+    assert result.event.extras["wf_trigger"]["name"] == "OnEnter"
     assert result.event.groups
 
 

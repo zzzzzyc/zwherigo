@@ -48,6 +48,7 @@
 
         <section class="card">
           <h2>SDK output</h2>
+          <div id="dirtyState" class="helper">No unsaved changes</div>
           <pre id="statusLog" class="result-box">Ready.</pre>
         </section>
       </aside>
@@ -69,9 +70,15 @@
 
         <section class="card">
           <h2>Events</h2>
-          <p class="section-subtitle">Edit WIG callbacks or direct Lua snippets.</p>
+          <p class="section-subtitle">Use templates for trigger-based events or Lua for advanced mode.</p>
+          <div class="toolbar">
+            <button class="secondary" id="quickAddZoneEnter">Quick: Zone Enter</button>
+            <button class="secondary" id="quickAddZoneExit">Quick: Zone Exit</button>
+            <button class="secondary" id="addEventFromTemplate">Create from template</button>
+            <button class="secondary" id="addEvent">Add blank event</button>
+          </div>
+          <div id="presetBuilder" class="results"></div>
           <div id="eventList" class="results"></div>
-          <button class="secondary" id="addEvent">Add event</button>
         </section>
 
         <section class="card">

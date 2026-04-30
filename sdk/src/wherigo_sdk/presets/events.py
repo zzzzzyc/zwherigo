@@ -21,6 +21,7 @@ _PRESETS: dict[str, dict[str, Any]] = {
         "label": "进入区域时触发",
         "description": "玩家进入目标区域时弹出提示并执行动作。",
         "target_types": ["zone"],
+        "trigger": "OnEnter",
         "params": [
             {"key": "zone_name", "label": "区域名称", "type": "string", "required": True},
             {"key": "message", "label": "提示文本", "type": "string", "required": True},
@@ -30,6 +31,7 @@ _PRESETS: dict[str, dict[str, Any]] = {
         "label": "离开区域时触发",
         "description": "玩家离开区域时弹出提示。",
         "target_types": ["zone"],
+        "trigger": "OnExit",
         "params": [
             {"key": "zone_name", "label": "区域名称", "type": "string", "required": True},
             {"key": "message", "label": "提示文本", "type": "string", "required": True},
@@ -107,6 +109,7 @@ def list_event_presets() -> list[dict[str, Any]]:
                 "label": preset["label"],
                 "description": preset["description"],
                 "target_types": preset["target_types"],
+                "trigger": preset.get("trigger"),
                 "params": preset["params"],
             }
         )
@@ -165,7 +168,7 @@ def _build_event(preset_id: str, params: dict[str, Any]) -> Event:
 
 
 def _zone_enter(params: dict[str, Any]) -> Event:
-    return Event(
+    event = Event(
         name=f"进入区域: {params['zone_name']}",
         object_name=params["zone_name"],
         groups=[
@@ -175,10 +178,13 @@ def _zone_enter(params: dict[str, Any]) -> Event:
             )
         ],
     )
+    event.extras["wf_trigger"] = {"scope": "zone", "name": "OnEnter"}
+    event.extras["trigger"] = {"kind": "zone_on_enter", "zone_name": params["zone_name"]}
+    return event
 
 
 def _zone_exit(params: dict[str, Any]) -> Event:
-    return Event(
+    event = Event(
         name=f"离开区域: {params['zone_name']}",
         object_name=params["zone_name"],
         groups=[
@@ -188,10 +194,13 @@ def _zone_exit(params: dict[str, Any]) -> Event:
             )
         ],
     )
+    event.extras["wf_trigger"] = {"scope": "zone", "name": "OnExit"}
+    event.extras["trigger"] = {"kind": "zone_on_exit", "zone_name": params["zone_name"]}
+    return event
 
 
 def _item_use(params: dict[str, Any]) -> Event:
-    return Event(
+    event = Event(
         name=f"物品使用: {params['item_name']}",
         object_name=params["item_name"],
         groups=[
@@ -201,10 +210,12 @@ def _item_use(params: dict[str, Any]) -> Event:
             )
         ],
     )
+    event.extras["trigger"] = {"kind": "item_on_use", "item_name": params["item_name"]}
+    return event
 
 
 def _task_complete(params: dict[str, Any]) -> Event:
-    return Event(
+    event = Event(
         name=f"任务完成: {params['task_name']}",
         object_name=params["task_name"],
         groups=[
@@ -214,11 +225,13 @@ def _task_complete(params: dict[str, Any]) -> Event:
             )
         ],
     )
+    event.extras["trigger"] = {"kind": "task_on_complete", "task_name": params["task_name"]}
+    return event
 
 
 def _score_increment(params: dict[str, Any]) -> Event:
     message = params.get("message") or "分数已更新"
-    return Event(
+    event = Event(
         name=f"计分增加: {params['variable_name']}",
         object_name=params["variable_name"],
         groups=[
@@ -231,10 +244,12 @@ def _score_increment(params: dict[str, Any]) -> Event:
             )
         ],
     )
+    event.extras["trigger"] = {"kind": "variable_update", "variable_name": params["variable_name"]}
+    return event
 
 
 def _dialog_hint(params: dict[str, Any]) -> Event:
-    return Event(
+    event = Event(
         name=f"提示对话: {params['title']}",
         object_name=params["target_name"],
         groups=[
@@ -244,10 +259,12 @@ def _dialog_hint(params: dict[str, Any]) -> Event:
             )
         ],
     )
+    event.extras["trigger"] = {"kind": "dialog_hint", "target_name": params["target_name"]}
+    return event
 
 
 def _conditional_gate(params: dict[str, Any]) -> Event:
-    return Event(
+    event = Event(
         name=f"条件分支: {params['target_name']}",
         object_name=params["target_name"],
         groups=[
@@ -263,10 +280,12 @@ def _conditional_gate(params: dict[str, Any]) -> Event:
             )
         ],
     )
+    event.extras["trigger"] = {"kind": "conditional_gate", "target_name": params["target_name"]}
+    return event
 
 
 def _one_shot_unlock(params: dict[str, Any]) -> Event:
-    return Event(
+    event = Event(
         name=f"一次性触发: {params['target_name']}",
         object_name=params["target_name"],
         groups=[
@@ -280,3 +299,5 @@ def _one_shot_unlock(params: dict[str, Any]) -> Event:
             )
         ],
     )
+    event.extras["trigger"] = {"kind": "one_shot_unlock", "target_name": params["target_name"]}
+    return event

@@ -54,6 +54,8 @@ def validate_project(cartridge: Cartridge) -> ValidationReport:
         warnings.append("cartridge.name contains characters that will be normalized in filenames")
 
     known_variable_ids = {var.id for var in cartridge.variables}
+    known_zone_names = {zone.name for zone in cartridge.zones if zone.name}
+    known_item_names = {item.name for item in cartridge.items if item.name}
     for zinput in cartridge.inputs:
         if zinput.variable_id not in known_variable_ids:
             errors.append(
@@ -79,6 +81,20 @@ def validate_project(cartridge: Cartridge) -> ValidationReport:
             else:
                 seen_ids.add(obj_id)
 
+    for zone in cartridge.zones:
+        shape_type = str(zone.extras.get("shape_type", "circle"))
+        if shape_type not in {"circle", "polygon"}:
+            errors.append(f"zone '{zone.name}' has unsupported shape_type '{shape_type}'")
+        if shape_type == "polygon":
+            points = zone.extras.get("points", [])
+            if not isinstance(points, list) or len(points) < 3:
+                errors.append(f"zone '{zone.name}' polygon must contain at least 3 points")
+
+    for item in cartridge.items:
+        for field in ("visible", "active", "enabled", "allow_take", "allow_drop", "allow_use", "allow_give"):
+            if not isinstance(getattr(item, field), bool):
+                errors.append(f"item '{item.name}' field '{field}' must be boolean")
+
     for event in cartridge.events:
         if event.event_type not in {"wig", "callback"}:
             errors.append(f"event '{event.name}' has unsupported event_type '{event.event_type}'")
@@ -88,6 +104,28 @@ def validate_project(cartridge: Cartridge) -> ValidationReport:
             errors.append("events contains object with empty name")
         if event.lua_script and "-- Nothing after this line --" in event.lua_script:
             warnings.append(f"event '{event.name}' lua_script contains reserved SDK marker text")
+        trigger = event.extras.get("trigger", {})
+        if isinstance(trigger, dict):
+            trigger_kind = str(trigger.get("kind", "")).strip()
+            if trigger_kind and trigger_kind not in {
+                "cartridge_start",
+                "cartridge_restore",
+                "cartridge_sync",
+                "zone_on_enter",
+                "zone_on_exit",
+                "item_on_use",
+                "item_on_click",
+                "task_on_complete",
+            }:
+                errors.append(f"event '{event.name}' has unsupported trigger kind '{trigger_kind}'")
+            if trigger_kind in {"zone_on_enter", "zone_on_exit"}:
+                zone_name = str(trigger.get("zone_name", "")).strip()
+                if zone_name and zone_name not in known_zone_names:
+                    errors.append(f"event '{event.name}' references missing zone '{zone_name}'")
+            if trigger_kind in {"item_on_use", "item_on_click"}:
+                item_name = str(trigger.get("item_name", "")).strip()
+                if item_name and item_name not in known_item_names:
+                    errors.append(f"event '{event.name}' references missing item '{item_name}'")
 
     return ValidationReport(errors=errors, warnings=warnings)
 

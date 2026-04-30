@@ -1,6 +1,10 @@
 const entitySchemas = {
   zones: { label: "区域", singular: "zone", fields: ["id", "name", "description"] },
-  items: { label: "物品", singular: "item", fields: ["id", "name", "description"] },
+  items: {
+    label: "物品",
+    singular: "item",
+    fields: ["id", "name", "description", "visible", "active", "enabled", "allow_take", "allow_drop", "allow_use", "allow_give"],
+  },
   characters: { label: "角色", singular: "character", fields: ["id", "name", "description"] },
   tasks: { label: "任务", singular: "task", fields: ["id", "name", "description"] },
   variables: { label: "变量", singular: "variable", fields: ["id", "name", "var_type", "value"] },
@@ -32,6 +36,9 @@ const state = {
   markers: new Map(),
   presets: [],
   presetDraft: { template_id: "", params: {} },
+  mapLayers: new Map(),
+  pointLayers: new Map(),
+  dirty: false,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -48,6 +55,22 @@ function showToast(message) {
   $("toast").textContent = message;
   $("toast").classList.add("show");
   setTimeout(() => $("toast").classList.remove("show"), 2400);
+}
+
+function markDirty() {
+  state.dirty = true;
+  if ($("dirtyState")) $("dirtyState").textContent = "有未保存变更";
+}
+
+function clearDirty() {
+  state.dirty = false;
+  if ($("dirtyState")) $("dirtyState").textContent = "无未保存变更";
+}
+
+function selectEntity(entityId) {
+  if (!entityId) return;
+  state.selectedId = entityId;
+  renderAll();
 }
 
 async function api(path, options = {}) {
@@ -152,20 +175,46 @@ function renderEntityList() {
 function renderFields(container, entity, schema) {
   for (const field of schema.fields) {
     const wrapper = document.createElement("label");
+    const isBool = typeof entity[field] === "boolean";
     const input = document.createElement(field === "description" ? "textarea" : "input");
-    input.value = entity[field] ?? "";
+    if (isBool) {
+      input.type = "checkbox";
+      input.checked = Boolean(entity[field]);
+    } else {
+      input.value = entity[field] ?? "";
+    }
     input.oninput = () => {
       if (field === "id") state.selectedId = input.value.trim();
-      entity[field] = field === "value" && entity.var_type === "number" ? Number(input.value || 0) : input.value;
+      if (isBool) {
+        entity[field] = input.checked;
+      } else {
+        entity[field] = field === "value" && entity.var_type === "number" ? Number(input.value || 0) : input.value;
+      }
       renderNav();
       renderMap();
     };
+    input.onclick = (event) => event.stopPropagation();
+    input.onfocus = (event) => event.stopPropagation();
+    wrapper.onclick = (event) => event.stopPropagation();
     wrapper.innerHTML = `<span>${field}</span>`;
     wrapper.appendChild(input);
     container.appendChild(wrapper);
   }
   if (state.selectedCollection === "zones") {
     entity.extras = entity.extras || {};
+    entity.extras.shape_type = entity.extras.shape_type || "circle";
+    const shapeField = document.createElement("label");
+    const shapeSelect = document.createElement("select");
+    shapeSelect.innerHTML = `<option value="circle">圆形</option><option value="polygon">多边形</option>`;
+    shapeSelect.value = entity.extras.shape_type;
+    shapeSelect.onchange = () => {
+      entity.extras.shape_type = shapeSelect.value;
+      if (shapeSelect.value === "polygon") entity.extras.points = entity.extras.points || [];
+      renderAll();
+    };
+    shapeField.innerHTML = "<span>区域类型</span>";
+    shapeField.appendChild(shapeSelect);
+    container.appendChild(shapeField);
     container.appendChild(numberField("纬度", entity.extras.lat ?? 39.9042, (value) => {
       entity.extras.lat = value;
       renderMap();
@@ -178,6 +227,35 @@ function renderFields(container, entity, schema) {
       entity.extras.radius_m = value;
       renderMap();
     }));
+    if (entity.extras.shape_type === "polygon") {
+      const points = Array.isArray(entity.extras.points) ? entity.extras.points : [];
+      const helper = document.createElement("div");
+      helper.className = "helper";
+      helper.textContent = `顶点数：${points.length}（地图点击可追加顶点）`;
+      container.appendChild(helper);
+      const removeLastBtn = document.createElement("button");
+      removeLastBtn.type = "button";
+      removeLastBtn.className = "secondary";
+      removeLastBtn.textContent = "删除最后一个点";
+      removeLastBtn.onclick = () => {
+        entity.extras.points = points.slice(0, -1);
+        markDirty();
+        renderMap();
+        renderAll();
+      };
+      container.appendChild(removeLastBtn);
+      const clearBtn = document.createElement("button");
+      clearBtn.type = "button";
+      clearBtn.className = "secondary";
+      clearBtn.textContent = "清空顶点";
+      clearBtn.onclick = () => {
+        entity.extras.points = [];
+        markDirty();
+        renderMap();
+        renderAll();
+      };
+      container.appendChild(clearBtn);
+    }
   }
 }
 
@@ -188,7 +266,16 @@ function currentEntity() {
 function defaultEntity() {
   const schema = entitySchemas[state.selectedCollection];
   const id = `${schema.singular}-${state.project[state.selectedCollection].length + 1}`;
-  const entity = { id, name: schema.label.slice(0, -1) || schema.label };
+  const defaultNames = {
+    zones: "新区域",
+    items: "新物品",
+    characters: "新角色",
+    tasks: "新任务",
+    variables: "新变量",
+    inputs: "新输入",
+    media_objects: "新媒体",
+  };
+  const entity = { id, name: defaultNames[state.selectedCollection] || schema.label };
   if (schema.fields.includes("description")) entity.description = "";
   if (state.selectedCollection === "variables") {
     entity.var_type = "string";
@@ -197,6 +284,16 @@ function defaultEntity() {
   if (state.selectedCollection === "inputs") entity.variable_id = state.project.variables[0]?.id || "";
   if (state.selectedCollection === "media_objects") entity.filename = "";
   if (state.selectedCollection === "zones") entity.extras = { lat: 39.9042, lon: 116.4074, radius_m: 40 };
+  if (state.selectedCollection === "zones") entity.extras.shape_type = "circle";
+  if (state.selectedCollection === "items") {
+    entity.visible = true;
+    entity.active = true;
+    entity.enabled = true;
+    entity.allow_take = true;
+    entity.allow_drop = true;
+    entity.allow_use = true;
+    entity.allow_give = true;
+  }
   return entity;
 }
 
@@ -323,8 +420,9 @@ function addEvent() {
     callback_key: 0,
     lua_script: "-- 在这里写 Lua",
     groups: [],
-    extras: { editor_mode: "lua" },
+    extras: { editor_mode: "lua", trigger: { kind: "zone_on_enter", zone_name: state.project.zones[0]?.name || "" } },
   });
+  markDirty();
   renderEvents();
 }
 
@@ -355,6 +453,7 @@ function renderEventTemplatePanel(container, event, eventIndex) {
         </select>
       </label>
       <div class="helper full">${escapeHtml(preset.description || "")}</div>
+      <div class="helper full">触发器：${escapeHtml(preset.trigger || "自定义")}</div>
       ${fields}
       <button type="button" class="secondary" data-rebuild>按模板重建脚本</button>
     </div>
@@ -448,6 +547,7 @@ async function createEventFromPreset() {
       }),
     });
     setProject(data.state.cartridge);
+    markDirty();
     showToast("模板事件已添加");
   } catch (error) {
     showToast(`创建失败：${error.message}`);
@@ -456,6 +556,29 @@ async function createEventFromPreset() {
 
 function renderAuthorScripts() {
   $("authorScripts").value = state.project.author_scripts || "";
+}
+
+async function createQuickZoneTrigger(templateId) {
+  const zone = state.project.zones.find((entry) => entry.id === state.selectedId) || state.project.zones[0];
+  if (!zone) {
+    showToast("请先创建一个区域");
+    return;
+  }
+  const message = templateId === "zone_exit" ? `离开${zone.name || zone.id}` : `进入${zone.name || zone.id}`;
+  try {
+    const data = await api("/api/presets/apply", {
+      method: "POST",
+      body: JSON.stringify({
+        template_id: templateId,
+        params: { zone_name: zone.name || zone.id, message },
+      }),
+    });
+    setProject(data.state.cartridge);
+    markDirty();
+    showToast("快捷触发已创建");
+  } catch (error) {
+    showToast(`创建失败：${error.message}`);
+  }
 }
 
 function initMap() {
@@ -470,8 +593,16 @@ function initMap() {
         const zone = currentEntity();
         if (!zone || state.selectedCollection !== "zones") return;
         zone.extras = zone.extras || {};
-        zone.extras.lat = Number(event.latlng.lat.toFixed(6));
-        zone.extras.lon = Number(event.latlng.lng.toFixed(6));
+        const shapeType = zone.extras.shape_type || "circle";
+        if (shapeType === "polygon") {
+          zone.extras.points = zone.extras.points || [];
+          zone.extras.points.push([Number(event.latlng.lat.toFixed(6)), Number(event.latlng.lng.toFixed(6))]);
+          markDirty();
+        } else {
+          zone.extras.lat = Number(event.latlng.lat.toFixed(6));
+          zone.extras.lon = Number(event.latlng.lng.toFixed(6));
+          markDirty();
+        }
         renderAll();
       });
     } else {
@@ -488,9 +619,45 @@ function renderMap() {
   if (typeof L === "undefined") return;
   try {
     for (const marker of state.markers.values()) marker.remove();
+    for (const layer of state.mapLayers.values()) layer.remove();
+    for (const points of state.pointLayers.values()) points.forEach((p) => p.remove());
     state.markers.clear();
+    state.mapLayers.clear();
+    state.pointLayers.clear();
     const bounds = [];
     for (const zone of state.project.zones) {
+      const shapeType = zone.extras?.shape_type || "circle";
+      if (shapeType === "polygon") {
+        const points = Array.isArray(zone.extras?.points) ? zone.extras.points : [];
+        if (points.length >= 1) {
+          const polyline = L.polygon(points, { color: zone.id === state.selectedId ? "#1565c0" : "#2e7d32" }).addTo(state.map);
+          polyline.on("click", () => {
+            state.selectedCollection = "zones";
+            state.selectedId = zone.id;
+            renderAll();
+          });
+          state.mapLayers.set(zone.id, polyline);
+          points.forEach((pt, idx) => {
+            const vertex = L.marker(pt, { draggable: zone.id === state.selectedId }).addTo(state.map);
+            vertex.on("click", () => {
+              state.selectedCollection = "zones";
+              state.selectedId = zone.id;
+              renderAll();
+            });
+            if (zone.id === state.selectedId) {
+              vertex.on("dragend", () => {
+                const moved = vertex.getLatLng();
+                zone.extras.points[idx] = [Number(moved.lat.toFixed(6)), Number(moved.lng.toFixed(6))];
+                markDirty();
+                renderMap();
+              });
+            }
+            state.pointLayers.set(zone.id, [...(state.pointLayers.get(zone.id) || []), vertex]);
+            bounds.push([pt[0], pt[1]]);
+          });
+        }
+        continue;
+      }
       const lat = Number(zone.extras?.lat);
       const lon = Number(zone.extras?.lon);
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
@@ -501,6 +668,7 @@ function renderMap() {
         zone.extras = zone.extras || {};
         zone.extras.lat = Number(point.lat.toFixed(6));
         zone.extras.lon = Number(point.lng.toFixed(6));
+        markDirty();
         if (zone.id === state.selectedId) renderEntityForm();
       });
       marker.on("click", () => {
@@ -509,6 +677,9 @@ function renderMap() {
         renderAll();
       });
       state.markers.set(zone.id, marker);
+      const radius = Number(zone.extras?.radius_m ?? 40);
+      const circle = L.circle([lat, lon], { radius, color: zone.id === state.selectedId ? "#1565c0" : "#2e7d32" }).addTo(state.map);
+      state.mapLayers.set(zone.id, circle);
       bounds.push([lat, lon]);
     }
     if (bounds.length) state.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
@@ -524,6 +695,7 @@ async function validateProject() {
     const data = await api("/api/project", { method: "POST", body: JSON.stringify(projectPayload()) });
     $("statusLog").textContent = JSON.stringify(data.validation, null, 2);
     showToast(data.validation.valid ? "项目校验通过" : "项目存在错误");
+    clearDirty();
   } catch (error) {
     $("statusLog").textContent = error.message;
     showToast("校验失败");
@@ -539,6 +711,7 @@ async function exportLua() {
   $("luaPreview").value = lua;
   downloadText(`${slug(state.project.name)}.lua`, lua, "text/plain");
   showToast("Lua 已导出");
+  clearDirty();
 }
 
 async function buildArtifacts() {
@@ -552,6 +725,7 @@ async function buildArtifacts() {
     .join("\n");
   $("statusLog").innerHTML = `构建完成\n${links}`;
   showToast("构建完成");
+  clearDirty();
 }
 
 function exportJson() {
@@ -559,6 +733,7 @@ function exportJson() {
   state.project.author_scripts = $("authorScripts").value;
   downloadText(`${slug(state.project.name)}.wigi.json`, JSON.stringify(state.project, null, 2), "application/json");
   showToast("JSON 已下载");
+  clearDirty();
 }
 
 function importJson(file) {
@@ -567,6 +742,7 @@ function importJson(file) {
   reader.onload = () => {
     try {
       setProject(JSON.parse(reader.result));
+      clearDirty();
       showToast("项目导入成功");
     } catch (error) {
       showToast(`导入失败：${error.message}`);
@@ -577,6 +753,7 @@ function importJson(file) {
 
 function newProject() {
   setProject(structuredClone(emptyProject));
+  clearDirty();
   showToast("已创建新项目");
 }
 
@@ -609,11 +786,13 @@ function wireEvents() {
   $("addEntity").onclick = addEntity;
   $("deleteEntity").onclick = removeEntity;
   $("addEvent").onclick = addEvent;
+  if ($("quickAddZoneEnter")) $("quickAddZoneEnter").onclick = () => createQuickZoneTrigger("zone_enter");
+  if ($("quickAddZoneExit")) $("quickAddZoneExit").onclick = () => createQuickZoneTrigger("zone_exit");
   $("addEventFromTemplate").onclick = createEventFromPreset;
-  $("projectId").oninput = saveMeta;
-  $("projectName").oninput = saveMeta;
-  $("projectFile").oninput = saveMeta;
-  $("authorScripts").oninput = () => { state.project.author_scripts = $("authorScripts").value; };
+  $("projectId").oninput = () => { saveMeta(); markDirty(); };
+  $("projectName").oninput = () => { saveMeta(); markDirty(); };
+  $("projectFile").oninput = () => { saveMeta(); markDirty(); };
+  $("authorScripts").oninput = () => { state.project.author_scripts = $("authorScripts").value; markDirty(); };
 }
 
 wireEvents();

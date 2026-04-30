@@ -48,6 +48,7 @@
 
         <section class="card">
           <h2>运行结果</h2>
+          <div id="dirtyState" class="helper">无未保存变更</div>
           <pre id="statusLog" class="result-box">准备就绪。</pre>
         </section>
       </aside>
@@ -69,6 +70,8 @@
           <h2>事件</h2>
           <p class="section-subtitle">支持模板模式与 Lua 高级模式。</p>
           <div class="toolbar">
+            <button class="secondary" id="quickAddZoneEnter">新增进入区域触发</button>
+            <button class="secondary" id="quickAddZoneExit">新增离开区域触发</button>
             <button class="secondary" id="addEventFromTemplate">从模板新增</button>
             <button class="secondary" id="addEvent">新增空白事件</button>
           </div>
